@@ -1,5 +1,27 @@
-(function(jQuery) {
+/* 
+ * Copyright (c) 2010, Dhruv Matani
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ */
 
+(function(jQuery) {
   var dparams = {
     color: "#000000", /* The font color of the text in the iframe. 
       This can be of the form "000000" or "#000000" or "black".
@@ -43,8 +65,8 @@
     "error-string": "Sorry, nothing could be found :-(", /* The error string to 
       display in the iframe if no matches were found.
     */
-	css: { } /* Other css attributes. Default: (empty) 
-	*/
+	  css: { } /* Other css attributes. Default: (empty) 
+	  */
   };
 
   var divstr = "<div class='actions'>" +
@@ -61,7 +83,7 @@
   var prev_open = null;
   var last_click_at = (new Date()).getTime();
 
-  /* Body's handlers attached? */
+  /* Window's handlers attached? */
   var _wh = false;
 
 
@@ -141,6 +163,7 @@
   } // get_div_start_pos()
 
 
+  /* Our plug-in's entry point */
   jQuery.fn.zero_clickable = function(params) {
 
     params = jQuery.extend({}, dparams, params);

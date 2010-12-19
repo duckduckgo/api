@@ -23,10 +23,6 @@
 
 (function(jQuery) {
   var dparams = {
-    color: "#000000", /* The font color of the text in the iframe. 
-      This can be of the form "000000" or "#000000" or "black".
-    Default: "#000000"
-    */
     unpunct: false, /* (true/false) Remove punctuations from the selected 
       text if true. Default: false
     */
@@ -58,15 +54,23 @@
       to copy text and not to define a term. Thanks Sandy!! :-) :-)
       Default: true
     */
-    "font-family": $("body").css("font-family"), /* The font-family to use in 
-      the iframe. If 'font-family' is NOT specified, it is set to the 
-    "font-family" attribute of the current document's body element.
-    */
     "error-string": "Sorry, nothing could be found :-(", /* The error string to 
       display in the iframe if no matches were found.
     */
-	  css: { } /* Other css attributes. Default: (empty) 
+	  css: { }, /* Other css attributes. 
+      The attributes that are forwarded (if using iframe) are: color, font-faimly.
+      By default, color and font-family are copied from the element that has 
+      been made zero_clickable. 
+      Default: (empty)
 	  */
+    onbeforeshow: function() { }, /* Function to be called just before the widget 
+      is shown.
+    */
+    onbeforeclose: function() { } /* Function to be called just after the close
+      button on the widget is clicked, but before the widget is removed. 
+      Note: This callback will NOT be fired if the widget is removed due to any
+      event other than the user clicking the close button.
+    */
   };
 
   var divstr = "<div class='actions'>" +
@@ -167,8 +171,6 @@
   jQuery.fn.zero_clickable = function(params) {
 
     params = jQuery.extend({}, dparams, params);
-    params.color = escape(params.color);
-
 
     if (!_wh && (params.proximity || params.clickout)) {
       _wh = true;
@@ -258,6 +260,11 @@
 
 
     $(this).each(function() {
+      console.log("Font-Family: ", $(this).css("font-family"));
+      params.css = jQuery.extend({
+        "font-family": $(this).css("font-family"), 
+        "color":       $(this).css("color")
+      }, params.css);
 
       $(this).mouseup(function(e) {
         // console.log("MOUSEUP");
@@ -270,11 +277,6 @@
         if (st.length == 0 || st.length > params["max-length"]) {
           return;
         }
-
-        /* Since this is a text selection, we fake a click. This is done to 
-         * make the time differences match up.
-         */
-        last_click_at = (new Date()).getTime();
 
         /* Popup a div with certain actionable items */
         var a = $(divstr);
@@ -294,12 +296,22 @@
         }
 
 		    for (var k in params.css) {
+          // console.log("Setting css[", k, "] to: ", params.css[k]);
           a.css(k, params.css[k]);
 		    }
 
         a.draggable();
         /* Display it!! */
+        try {
+          params.onbeforeshow(a);
+        }
+        catch (e) { /* Do nothing */ }
         a.show();
+
+        /* Since this is a text selection, we fake a click. This is done to 
+         * make the time differences match up.
+         */
+        last_click_at = (new Date()).getTime();
 
         /* Check if we are in singleton mode */
         if (params.singleton) {
@@ -314,8 +326,9 @@
           }
           var i = $("<iframe></iframe>");
           var q = a.find(".user-sel-text").text();
-          var url = "http://dhruvbird.com/ddb/zeroclick.php?color=" + params.color + 
-            "&font-family=" + escape(params["font-family"]) + 
+
+          var url = "http://dhruvbird.com/ddb/zeroclick.php?color=" + escape(params.css.color) + 
+            "&font-family=" + escape(params.css["font-family"]) + 
             "&q=" + escape(q);
           i.attr("src", url);
           a.append(i);
@@ -323,6 +336,10 @@
 
         a.find("div.close").click(function() {
           /* Remove the .actions div */
+          try {
+            params.onbeforeclose(a);
+          }
+          catch (e) { /* Do nothing */ }
           a.remove();
         });
 

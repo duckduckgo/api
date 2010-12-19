@@ -260,7 +260,6 @@
 
 
     $(this).each(function() {
-      console.log("Font-Family: ", $(this).css("font-family"));
       params.css = jQuery.extend({
         "font-family": $(this).css("font-family"), 
         "color":       $(this).css("color")

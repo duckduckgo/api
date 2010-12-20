@@ -74,14 +74,14 @@
   };
 
   var divstr = "<div class='actions'>" +
-  "<div class='left-div'>" + 
+  "<table border='0' width='100%'><tr>" +
+  "<td class='left-td'>" +
   "  <div class='user-sel-text'>Hello World</div>" + 
-  "</div>" + 
-  "<div class='right-div'>" + 
+  "</td>" + 
+  "<td class='right-td'>" + 
   "  <div class='close'>X</div>" + 
-  "</div>" + 
-  "<div style='clear: both;'></div>" + 
-  "<div style='clear:both;'></div>" + 
+  "</td>" +
+  "</tr></table>" + 
   "<a class='more-info'>More Info.</a>" + 
   "</div>";
   var prev_open = null;
@@ -171,13 +171,14 @@
   jQuery.fn.zero_clickable = function(params) {
 
     params = jQuery.extend({}, dparams, params);
+    // console.log("PARAMS Clickout:", params.clickout);
 
     if (!_wh && (params.proximity || params.clickout)) {
       _wh = true;
 
       if (params.proximity) {
 
-        $(window).mousemove(function(e) {
+        $(document).mousemove(function(e) {
           var a = $(".actions");
           // console.log(a);
           a.each(function() {
@@ -213,8 +214,8 @@
       } // if (params.proximity)
 
       if (params.clickout) {
-        $(window).click(function(e) {
-          // alert("Foo");
+        $(document).click(function(e) {
+          // alert("document.click");
           var curr_click_time = (new Date()).getTime();
           var prev_click_time = last_click_at;
           last_click_at = curr_click_time;
@@ -268,8 +269,9 @@
       $(this).mouseup(function(e) {
         // console.log("MOUSEUP");
         // console.log(getSelected());
+        var sobj = getSelected();
 
-        var st = jQuery.trim(getSelected().toString());
+        var st = sobj ? jQuery.trim(sobj.toString()) : "";
         if (params.unpunct) {
           st = unpunct(st);
         }
@@ -324,6 +326,9 @@
             return;
           }
           var i = $("<iframe></iframe>");
+          /* To please IE */
+          i.attr("frameBorder", "0")
+           .css("background-color", "transparent");
           var q = a.find(".user-sel-text").text();
 
           var url = "http://dhruvbird.com/ddb/zeroclick.php?color=" + escape(params.css.color) + 

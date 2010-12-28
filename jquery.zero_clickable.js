@@ -86,6 +86,7 @@
   "</div>";
   var prev_open = null;
   var last_click_at = (new Date()).getTime();
+  var last_mousedown = null;
 
   /* Window's handlers attached? */
   var _wh = false;
@@ -138,6 +139,8 @@
     var x = parseInt(a.css("left"));
     var y = parseInt(a.css("top"));
 
+    // console.log("get_div_start_pos::e:", e);
+
     var p = 13;
     var widw = a.width() + 2*p;
     var widh = a.height() + 2*p + 200;
@@ -154,6 +157,8 @@
       { x: MAGIC, y: otop + winh - widh - MAGIC } /* Bottom Left */
     ];
 
+    // console.log("_candidates:", _candidates);
+
     for (var i in _candidates) {
       var _c = _candidates[i];
       // console.log(clickedOnMe(_c.x, _c.y, 13, a, e));
@@ -166,6 +171,22 @@
 
   } // get_div_start_pos()
 
+
+  /* We define a mouseup on the document object since the user may have 
+   * selected some text and may 'mouseup' on an element that is not in 
+   * the list of elements being watched for mouseup.
+   */
+  $(document).mouseup(function(e) {
+    // alert(last_mousedown);
+    if (last_mousedown) {
+      /* This (_tmp) is to ensure that recirsive bubbling of events
+       * doesn't make the browser go into a tizzy!!
+       */
+      var _tmp = last_mousedown;
+      last_mousedown = null;
+      $(_tmp).trigger("mouseup", [e]);
+    }
+  });
 
   /* Our plug-in's entry point */
   jQuery.fn.zero_clickable = function(params) {
@@ -261,14 +282,31 @@
 
 
     $(this).each(function() {
-      params.css = jQuery.extend({
-        "font-family": $(this).css("font-family"), 
-        "color":       $(this).css("color")
-      }, params.css);
+
+      /* We monotor mousedown events on the selected object since
+       * we would like to know the element under consideration if 
+       * the user mouseups on a non-selected element.
+       */
+      $(this).mousedown(function(e) {
+        // alert("bar");
+        last_mousedown = this;
+      });
 
       $(this).mouseup(function(e) {
         // console.log("MOUSEUP");
         // console.log(getSelected());
+        last_mousedown = null;
+
+        /* This is in the mouseup handler since the page's CSS may change
+         * any time, and we always try to mimic it if nothing is specified
+         */
+        var _p = jQuery.extend({}, params);
+        _p.css = jQuery.extend({}, _p.css);
+        _p.css = jQuery.extend({
+          "font-family": $(this).css("font-family"), 
+          "color":       $(this).css("color")
+        }, params.css);
+
         var sobj = getSelected();
 
         var st = sobj ? jQuery.trim(sobj.toString()) : "";
@@ -284,24 +322,33 @@
         a.css("left", e.pageX)
          .css("top", e.pageY);
         if ("id" in params) {
-          a.attr("id", params.id);
+          a.attr("id", _p.id);
         }
         a.find(".user-sel-text").html(st);
         a.find("iframe").remove();
+
+        a.draggable();
         $("body").append(a);
 
+        /* Check if we are in singleton mode */
+        if (params.singleton) {
+          remove_prev_open();
+          prev_open = a;
+        }
+
         if (params.cornered) {
+          // console.log("mouseup::e:", e);
           var _dp = get_div_start_pos(e, a);
+          // console.log("_dp:", _dp);
           a.css("left", _dp.x.toString() + "px")
            .css("top",  _dp.y.toString() + "px");
         }
 
-		    for (var k in params.css) {
+        for (var k in _p.css) {
           // console.log("Setting css[", k, "] to: ", params.css[k]);
-          a.css(k, params.css[k]);
-		    }
+          a.css(k, _p.css[k]);
+        }
 
-        a.draggable();
         /* Display it!! */
         try {
           params.onbeforeshow(a);
@@ -314,11 +361,8 @@
          */
         last_click_at = (new Date()).getTime();
 
-        /* Check if we are in singleton mode */
-        if (params.singleton) {
-          remove_prev_open();
-          prev_open = a;
-        }
+
+        /* All the event handlers go below */
 
         a.find(".more-info").click(function() {
           /* Remove an existing iframe if one exists */
@@ -331,8 +375,8 @@
            .css("background-color", "transparent");
           var q = a.find(".user-sel-text").text();
 
-          var url = "http://dhruvbird.com/ddb/zeroclick.php?color=" + escape(params.css.color) + 
-            "&font-family=" + escape(params.css["font-family"]) + 
+          var url = "http://dhruvbird.com/ddb/zeroclick.php?color=" + escape(_p.css.color) + 
+            "&font-family=" + escape(_p.css["font-family"]) + 
             "&q=" + escape(q);
           i.attr("src", url);
           a.append(i);

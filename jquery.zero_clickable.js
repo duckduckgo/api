@@ -21,7 +21,8 @@
  *
  */
 
-(function(jQuery) {
+(function($) {
+  var jQuery = $;
   var dparams = {
     unpunct: false, /* (true/false) Remove punctuations from the selected 
       text if true. Default: false
@@ -81,8 +82,8 @@
   "<td class='right-td'>" + 
   "  <div class='close'>X</div>" + 
   "</td>" +
-  "</tr></table>" + 
-  "<a class='more-info'>More Info.</a>" + 
+  "</tr><tr><td class='more-info-td' colspan='2'><a class='more-info'>More Info.</a></td></tr></table>" + 
+  "" + 
   "</div>";
   var prev_open = null;
   var last_click_at = (new Date()).getTime();
@@ -320,7 +321,8 @@
         /* Popup a div with certain actionable items */
         var a = $(divstr);
         a.css("left", e.pageX)
-         .css("top", e.pageY);
+         .css("top", e.pageY)
+		 .css("position", "absolute");
         if ("id" in params) {
           a.attr("id", _p.id);
         }
@@ -369,6 +371,11 @@
           if (a.find("iframe").length > 0) {
             return;
           }
+
+		  $(this).animate({ opacity: 0.0 }, 500, function() {
+			  $(this).css("visibility", "hidden");
+		  });
+
           var i = $("<iframe></iframe>");
           /* To please IE */
           i.attr("frameBorder", "0")
